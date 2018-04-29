@@ -141,7 +141,7 @@ void CACHE_REPLACEMENT_STATE::UpdateReplacementState(
         // Contestants:  ADD YOUR UPDATE REPLACEMENT STATE FUNCTION HERE
         // Feel free to use any of the input parameters to make
         // updates to your replacement policy
-        UpdateFreq( setIndex, updateWayID );
+        UpdateFreq( setIndex, updateWayID, cacheHit );
     }
     
     
