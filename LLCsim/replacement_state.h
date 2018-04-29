@@ -33,7 +33,8 @@ typedef enum
 typedef struct
 {
     UINT32  LRUstackposition;
-
+    UINT32  now;
+    UINT32  delta;
     // CONTESTANTS: Add extra state per cache line here
 
 } LINE_REPLACEMENT_STATE;
@@ -61,7 +62,6 @@ class CACHE_REPLACEMENT_STATE
 
     INT32  GetVictimInSet( UINT32 tid, UINT32 setIndex, const LINE_STATE *vicSet, UINT32 assoc, Addr_t PC, Addr_t paddr, UINT32 accessType );
     void   UpdateReplacementState( UINT32 setIndex, INT32 updateWayID );
-
     void   SetReplacementPolicy( UINT32 _pol ) { replPolicy = _pol; } 
     void   IncrementTimer() { mytimer++; } 
 
@@ -76,7 +76,10 @@ class CACHE_REPLACEMENT_STATE
     INT32  Get_Random_Victim( UINT32 setIndex );
 
     INT32  Get_LRU_Victim( UINT32 setIndex );
+    INT32  Get_Freq_Victim( UINT32 setIndex );
+    
     void   UpdateLRU( UINT32 setIndex, INT32 updateWayID );
+    void   UpdateFreq( UINT32 setIndex, INT32 updateWayID );
 };
 
 

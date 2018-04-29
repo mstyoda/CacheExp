@@ -65,6 +65,10 @@ void CACHE_REPLACEMENT_STATE::InitReplacementState()
         {
             // initialize stack position (for true LRU)
             repl[ setIndex ][ way ].LRUstackposition = way;
+            
+            //my strategy
+            repl[ setIndex ][ way ].now = 0;
+            repl[ setIndex ][ way ].delta = 1<<30;
         }
     }
 
@@ -138,6 +142,7 @@ void CACHE_REPLACEMENT_STATE::UpdateReplacementState(
         // Contestants:  ADD YOUR UPDATE REPLACEMENT STATE FUNCTION HERE
         // Feel free to use any of the input parameters to make
         // updates to your replacement policy
+        UpdateFreq( setIndex, updateWayID );
     }
     
     
@@ -178,6 +183,25 @@ INT32 CACHE_REPLACEMENT_STATE::Get_LRU_Victim( UINT32 setIndex )
     return lruWay;
 }
 
+
+INT32 CACHE_REPLACEMENT_STATE::Get_Freq_Victim( UINT32 setIndex )
+{
+    // Get pointer to replacement state of current set
+    LINE_REPLACEMENT_STATE *replSet = repl[ setIndex ];
+
+    INT32   freqWay   = 0;
+
+    // Search for victim whose stack position is assoc-1
+    for(UINT32 way=1; way<assoc; way++) 
+    {
+        if (replSet[way].delta > replSet[freqWay].delta)
+            freqWay = way;
+    }
+
+    // return freq way
+    return freqWay;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
 // This function finds a random victim in the cache set                       //
@@ -214,6 +238,17 @@ void CACHE_REPLACEMENT_STATE::UpdateLRU( UINT32 setIndex, INT32 updateWayID )
 
     // Set the LRU stack position of new line to be zero
     repl[ setIndex ][ updateWayID ].LRUstackposition = 0;
+}
+
+
+void CACHE_REPLACEMENT_STATE::UpdateFreq( UINT32 setIndex, INT32 updateWayID )
+{
+    for (UINT32 way = 0; way < assoc; way++)
+    {
+        repl[setIndex][way].now ++;
+    }
+    repl[setIndex][updateWayID].delta = repl[setIndex][updateWayID].now;
+    repl[setIndex][updateWayID].now = 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
