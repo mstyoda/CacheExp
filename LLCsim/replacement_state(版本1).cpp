@@ -141,7 +141,6 @@ void CACHE_REPLACEMENT_STATE::UpdateReplacementState(
         // Contestants:  ADD YOUR UPDATE REPLACEMENT STATE FUNCTION HERE
         // Feel free to use any of the input parameters to make
         // updates to your replacement policy
-        UpdateLRU( setIndex, updateWayID);
         UpdateFreq( setIndex, updateWayID, cacheHit );
     }
     
@@ -197,16 +196,14 @@ INT32 CACHE_REPLACEMENT_STATE::Get_Freq_Victim( UINT32 setIndex )
     L = 0;
     for (UINT32 way = 0; way < assoc; way++)
     {
-        R = L + Max - replSet[way].now + 1;
+        R = L + Max - replSet[way].now;
         if (pos >= L && pos < R)
         {
             freqWay = way; break;
         }
         L = R;
     }
-    int lruWay =  Get_LRU_Victim(setIndex);
-    //mixup
-    if (rand() %100 < 65) return lruWay;
+    // return freq way
     return freqWay;
 }
 
