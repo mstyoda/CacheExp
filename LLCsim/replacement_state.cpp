@@ -190,7 +190,7 @@ INT32 CACHE_REPLACEMENT_STATE::Get_Freq_Victim( UINT32 setIndex )
 
     UINT32   freqWay   = 0, sum = 0, pos,L,R,Max = 0;
     for (UINT32 way = 0; way < assoc; way++) Max = replSet[way].now > Max ? replSet[way].now : Max;
-    for (UINT32 way = 0; way < assoc; way++) sum += Max - replSet[way].now;
+    for (UINT32 way = 0; way < assoc; way++) sum += Max - replSet[way].now + 1;
     
     pos = (rand() % sum);
     L = 0;
