@@ -188,7 +188,7 @@ INT32 CACHE_REPLACEMENT_STATE::Get_Freq_Victim( UINT32 setIndex )
     // Get pointer to replacement state of current set
     LINE_REPLACEMENT_STATE *replSet = repl[ setIndex ];
 
-    INT32   freqWay   = 0, sum = 0, pos,L,R,Max = 0;
+    UINT32   freqWay   = 0, sum = 0, pos,L,R,Max = 0;
     for (UINT32 way = 0; way < assoc; way++) Max = replSet[way].now > Max ? replSet[way].now : Max;
     for (UINT32 way = 0; way < assoc; way++) sum += Max - replSet[way].now;
     
