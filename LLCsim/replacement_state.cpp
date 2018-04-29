@@ -65,10 +65,8 @@ void CACHE_REPLACEMENT_STATE::InitReplacementState()
         {
             // initialize stack position (for true LRU)
             repl[ setIndex ][ way ].LRUstackposition = way;
-            
             //my strategy
-            repl[ setIndex ][ way ].now = 0;
-            repl[ setIndex ][ way ].delta = 1<<30;
+            repl[ setIndex ][ way ].now = 1;
         }
     }
 
@@ -190,15 +188,21 @@ INT32 CACHE_REPLACEMENT_STATE::Get_Freq_Victim( UINT32 setIndex )
     // Get pointer to replacement state of current set
     LINE_REPLACEMENT_STATE *replSet = repl[ setIndex ];
 
-    INT32   freqWay   = 0;
-
-    // Search for victim whose stack position is assoc-1
-    for(UINT32 way=1; way<assoc; way++) 
+    INT32   freqWay   = 0, sum = 0, pos,L,R,Max = 0;
+    for (UINT32 way = 0; way < assoc; way++) Max = replSet[way].now > Max ? replSet[way].now : Max;
+    for (UINT32 way = 0; way < assoc; way++) sum += Max - replSet[way].now;
+    
+    pos = (rand() % sum);
+    L = 0;
+    for (UINT32 way = 0; way < assoc; way++)
     {
-        if (replSet[way].delta > replSet[freqWay].delta)
-            freqWay = way;
+        R = L + Max - replSet[way].now;
+        if (pos >= L && pos < R)
+        {
+            freqWay = way; break;
+        }
+        L = R;
     }
-
     // return freq way
     return freqWay;
 }
@@ -242,14 +246,11 @@ void CACHE_REPLACEMENT_STATE::UpdateLRU( UINT32 setIndex, INT32 updateWayID )
 }
 
 
-void CACHE_REPLACEMENT_STATE::UpdateFreq( UINT32 setIndex, INT32 updateWayID )
+void CACHE_REPLACEMENT_STATE::UpdateFreq( UINT32 setIndex, INT32 updateWayID, bool cacheHit )
 {
-    for (UINT32 way = 0; way < assoc; way++)
-    {
-        repl[setIndex][way].now ++;
-    }
-    repl[setIndex][updateWayID].delta = repl[setIndex][updateWayID].now;
-    repl[setIndex][updateWayID].now = 0;
+    if (cacheHit)
+        repl[setIndex][updateWayID].now ++;
+    else repl[setIndex][updateWayID].now = 1;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

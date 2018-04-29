@@ -79,7 +79,7 @@ class CACHE_REPLACEMENT_STATE
     INT32  Get_Freq_Victim( UINT32 setIndex );
     
     void   UpdateLRU( UINT32 setIndex, INT32 updateWayID );
-    void   UpdateFreq( UINT32 setIndex, INT32 updateWayID );
+    void   UpdateFreq( UINT32 setIndex, INT32 updateWayID, bool cacheHit );
 };
 
 
