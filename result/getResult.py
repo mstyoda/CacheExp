@@ -24,4 +24,4 @@ for f1 in fs:
 					if ('Rate:' in line[j]):
 						MissRate = line[j + 1]
 		out+= tmp_id + ' ' + f1[-1]+' ' + CPI+' ' + MissRate +'\n'
-open("result.out",'w').write(out)
+open("resultNew.out",'w').write(out)
