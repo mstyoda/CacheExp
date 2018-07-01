@@ -1,6 +1,5 @@
 #include "replacement_state.h"
 
-typedef double db;
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
@@ -66,11 +65,12 @@ void CACHE_REPLACEMENT_STATE::InitReplacementState()
         {
             // initialize stack position (for true LRU)
             repl[ setIndex ][ way ].LRUstackposition = way;
-            repl[ setIndex ][ way ].isDirty = 0;
+            repl[ setIndex ][ way ].cnt = 1;
         }
     }
 
     // Contestants:  ADD INITIALIZATION FOR YOUR HARDWARE HERE
+    
 
 }
 
@@ -103,8 +103,9 @@ INT32 CACHE_REPLACEMENT_STATE::GetVictimInSet( UINT32 tid, UINT32 setIndex, cons
     }
     else if( replPolicy == CRC_REPL_CONTESTANT )
     {
-        return Get_Dirty_Victim( setIndex );
+        return Get_Dirty_Victim( setIndex , vicSet);
         // Contestants:  ADD YOUR VICTIM SELECTION FUNCTION HERE
+       
     }
 
     // We should never get here
@@ -138,10 +139,10 @@ void CACHE_REPLACEMENT_STATE::UpdateReplacementState(
     }
     else if( replPolicy == CRC_REPL_CONTESTANT )
     {
+        UpdateDirty( setIndex, updateWayID, cacheHit);
         // Contestants:  ADD YOUR UPDATE REPLACEMENT STATE FUNCTION HERE
         // Feel free to use any of the input parameters to make
         // updates to your replacement policy
-        UpdateDirty( setIndex, updateWayID,currLine);
     }
     
     
@@ -182,27 +183,6 @@ INT32 CACHE_REPLACEMENT_STATE::Get_LRU_Victim( UINT32 setIndex )
     return lruWay;
 }
 
-
-INT32 CACHE_REPLACEMENT_STATE::Get_Dirty_Victim( UINT32 setIndex )
-{
-    LINE_REPLACEMENT_STATE *replSet = repl[ setIndex ];
-
-    INT32   dirtyWay   = 0;
-    
-    UINT32 minValue = 1<<30;
-
-    for (UINT32 way = 0; way < assoc; way ++)
-    {
-        UINT32 curValue = ((assoc - 1) - replSet[way].LRUstackposition) + (replSet[way].isDirty * assoc);
-        if (curValue < minValue)
-        {
-            minValue = curValue;
-            dirtyWay = way;
-        }
-    }
-    return dirtyWay;
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
 // This function finds a random victim in the cache set                       //
@@ -213,6 +193,37 @@ INT32 CACHE_REPLACEMENT_STATE::Get_Random_Victim( UINT32 setIndex )
     INT32 way = (rand() % assoc);
     
     return way;
+}
+
+
+INT32 CACHE_REPLACEMENT_STATE::Get_Dirty_Victim( UINT32 setIndex, const LINE_STATE* vicSet)
+{
+    LINE_REPLACEMENT_STATE *replSet = repl[ setIndex ];
+
+    double maxcnt = 1;
+    double x,y,z;
+    double cost;
+    double min_cost = 1e+10;
+
+    INT32 dirty_way = 0;
+
+    for(UINT32 way=0; way<assoc; way++)
+        if (replSet[way].cnt > maxcnt)
+            maxcnt = replSet[way].cnt;
+    
+    for(UINT32 way = 0; way < assoc; way ++)
+    {
+        x = vicSet[way].dirty ? 0.5 : 0;
+        y = 1. - (double)replSet[way].LRUstackposition / (double)assoc;
+        z = (double) replSet[way].cnt / maxcnt;
+
+        // score_now = cnt_now*cnt_now + dirty_now*dirty_now + stack_now*stack_now;
+        cost = x * x + y * y + z * z;
+        if (cost < min_cost) {min_cost = cost; dirty_way = way;}
+    }
+
+    return dirty_way;
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -241,15 +252,14 @@ void CACHE_REPLACEMENT_STATE::UpdateLRU( UINT32 setIndex, INT32 updateWayID )
     repl[ setIndex ][ updateWayID ].LRUstackposition = 0;
 }
 
-
-void CACHE_REPLACEMENT_STATE::UpdateDirty( UINT32 setIndex, INT32 updateWayID, const LINE_STATE *currLine)
+void CACHE_REPLACEMENT_STATE::UpdateDirty( UINT32 setIndex, INT32 updateWayID, bool cacheHit)
 {
-    //首先更新LRU栈
     UpdateLRU(setIndex, updateWayID);
-    //记录该way的dirty信息
-    repl[setIndex][updateWayID].isDirty = currLine[updateWayID].dirty;
+    if (cacheHit) 
+        repl[setIndex][updateWayID].cnt ++; 
+    else 
+        repl[setIndex][updateWayID].cnt = 1;
 }
-
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
