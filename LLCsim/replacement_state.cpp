@@ -193,7 +193,7 @@ INT32 CACHE_REPLACEMENT_STATE::Get_Dirty_Victim( UINT32 setIndex )
 
     for (UINT32 way = 0; way < assoc; way ++)
     {
-        UINT32 curValue = ((assoc - 1) - replSet[way].LRUstackposition) + replSet[way].isDirty;
+        UINT32 curValue = ((assoc - 1) - replSet[way].LRUstackposition) + (replSet[way].isDirty * assoc);
         if (curValue < minValue)
         {
             minValue = curValue;
