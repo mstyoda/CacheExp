@@ -242,10 +242,12 @@ void CACHE_REPLACEMENT_STATE::UpdateLRU( UINT32 setIndex, INT32 updateWayID )
 }
 
 
-void CACHE_REPLACEMENT_STATE::UpdateDirty( UINT32 setIndex, INT32 updateWayID, const LINE_STATE *currLine )
+void CACHE_REPLACEMENT_STATE::UpdateDirty( UINT32 setIndex, INT32 updateWayID, const LINE_STATE *currLine)
 {
+    //首先更新LRU栈
     UpdateLRU(setIndex, updateWayID);
-    repl[setIndex][updateWayID].isDirty = currLine->dirty;
+    //记录该way的dirty信息
+    repl[setIndex][updateWayID].isDirty = currLine[updateWayID]->dirty;
 }
 
 
