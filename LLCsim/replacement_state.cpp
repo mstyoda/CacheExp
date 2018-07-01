@@ -247,7 +247,7 @@ void CACHE_REPLACEMENT_STATE::UpdateDirty( UINT32 setIndex, INT32 updateWayID, c
     //首先更新LRU栈
     UpdateLRU(setIndex, updateWayID);
     //记录该way的dirty信息
-    repl[setIndex][updateWayID].isDirty = currLine[updateWayID]->dirty;
+    repl[setIndex][updateWayID].isDirty = currLine[updateWayID].dirty;
 }
 
 
