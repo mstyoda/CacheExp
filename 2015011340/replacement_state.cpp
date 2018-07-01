@@ -248,7 +248,6 @@ void CACHE_REPLACEMENT_STATE::UpdateDirty( UINT32 setIndex, INT32 updateWayID, c
     repl[setIndex][updateWayID].isDirty = currLine->dirty;
 }
 
-void 
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
