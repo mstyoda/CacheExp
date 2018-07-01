@@ -1,6 +1,5 @@
 #include "replacement_state.h"
 
-typedef double db;
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
@@ -66,7 +65,8 @@ void CACHE_REPLACEMENT_STATE::InitReplacementState()
         {
             // initialize stack position (for true LRU)
             repl[ setIndex ][ way ].LRUstackposition = way;
-            repl[ setIndex ][ way ].isDirty = 0;
+            //my strategy
+            repl[ setIndex ][ way ].now = 1;
         }
     }
 
@@ -103,7 +103,7 @@ INT32 CACHE_REPLACEMENT_STATE::GetVictimInSet( UINT32 tid, UINT32 setIndex, cons
     }
     else if( replPolicy == CRC_REPL_CONTESTANT )
     {
-        return Get_Dirty_Victim( setIndex );
+        return Get_Freq_Victim( setIndex );
         // Contestants:  ADD YOUR VICTIM SELECTION FUNCTION HERE
     }
 
@@ -141,7 +141,7 @@ void CACHE_REPLACEMENT_STATE::UpdateReplacementState(
         // Contestants:  ADD YOUR UPDATE REPLACEMENT STATE FUNCTION HERE
         // Feel free to use any of the input parameters to make
         // updates to your replacement policy
-        UpdateDirty( setIndex, updateWayID,currLine);
+        UpdateFreq( setIndex, updateWayID, cacheHit );
     }
     
     
@@ -183,24 +183,28 @@ INT32 CACHE_REPLACEMENT_STATE::Get_LRU_Victim( UINT32 setIndex )
 }
 
 
-INT32 CACHE_REPLACEMENT_STATE::Get_Dirty_Victim( UINT32 setIndex )
+INT32 CACHE_REPLACEMENT_STATE::Get_Freq_Victim( UINT32 setIndex )
 {
+    // Get pointer to replacement state of current set
     LINE_REPLACEMENT_STATE *replSet = repl[ setIndex ];
 
-    INT32   dirtyWay   = 0;
+    UINT32   freqWay   = 0, sum = 0, pos,L,R,Max = 0;
+    for (UINT32 way = 0; way < assoc; way++) Max = replSet[way].now > Max ? replSet[way].now : Max;
+    for (UINT32 way = 0; way < assoc; way++) sum += Max - replSet[way].now + 1;
     
-    UINT32 minValue = 1<<30;
-
-    for (UINT32 way = 0; way < assoc; way ++)
+    pos = (rand() % sum);
+    L = 0;
+    for (UINT32 way = 0; way < assoc; way++)
     {
-        UINT32 curValue = ((assoc - 1) - replSet[way].LRUstackposition) + replSet[way].isDirty;
-        if (curValue < minValue)
+        R = L + Max - replSet[way].now;
+        if (pos >= L && pos < R)
         {
-            minValue = curValue;
-            dirtyWay = way;
+            freqWay = way; break;
         }
+        L = R;
     }
-    return dirtyWay;
+    // return freq way
+    return freqWay;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -242,13 +246,12 @@ void CACHE_REPLACEMENT_STATE::UpdateLRU( UINT32 setIndex, INT32 updateWayID )
 }
 
 
-void CACHE_REPLACEMENT_STATE::UpdateDirty( UINT32 setIndex, INT32 updateWayID, const LINE_STATE *currLine )
+void CACHE_REPLACEMENT_STATE::UpdateFreq( UINT32 setIndex, INT32 updateWayID, bool cacheHit )
 {
-    UpdateLRU(setIndex, updateWayID);
-    repl[setIndex][updateWayID].isDirty = currLine->dirty;
+    if (cacheHit)
+        repl[setIndex][updateWayID].now ++;
+    else repl[setIndex][updateWayID].now = 1;
 }
-
-void 
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
